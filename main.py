@@ -55,6 +55,7 @@ def addcoins(id, amount):
 
 @bot.command()
 async def shootout(ctx, user: discord.User, amount):
+  amount = int(amount)
   addcoins(user.id, amount*-1)
   addcoins(ctx.author.id, amount*-1)
   embed=discord.Embed(color=embed_color)
@@ -66,19 +67,17 @@ async def gamble(ctx, amount):
   embed=discord.Embed(color=embed_color)
   balance = db.find_one({'id': ctx.author.id})
   coins = balance['coins']
-  try:
-    if coins >= int(amount):
-      choice = random.choice(coinflip)
-      if choice == 'tails':
-        addcoins(ctx.author.id, amount*-1)
-        embed.add_field(name="Gamble", value=f'Lost {amount} ChillCoins', inline=False)
-      elif choice == 'heads':
-        addcoins(ctx.author.id, amount)
-        embed.add_field(name="Gamble", value=f'Won {amount} ChillCoins', inline=False)
-    else:
-      embed.add_field(name="Gamble", value=f'Not enough ChillCoins, need {amount} have {coins}', inline=False)
-  except:
-    embed.add_field(name="Gamble", value='Invalid amount', inline=False)
+  amount = int(amount)
+  if coins >= int(amount):
+    choice = random.choice(coinflip)
+    if choice == 'tails':
+      addcoins(ctx.author.id, amount*-1)
+      embed.add_field(name="Gamble", value=f'Lost {amount} ChillCoins', inline=False)
+    elif choice == 'heads':
+      addcoins(ctx.author.id, amount)
+      embed.add_field(name="Gamble", value=f'Won {amount} ChillCoins', inline=False)
+  else:
+    embed.add_field(name="Gamble", value=f'Not enough ChillCoins, need {amount} have {coins}', inline=False)
   await ctx.send(embed=embed)
 
 @bot.command()
@@ -86,36 +85,32 @@ async def donate(ctx, user: discord.User, amount):
   embed=discord.Embed(color=embed_color)
   balance = db.find_one({'id': ctx.author.id})
   coins = balance['coins']
-  try:
-    if coins >= int(amount):
-        embed.add_field(name="Donate", value=f'Donated {amount} ChillCoins to <@{user.id}>', inline=False)
-        addcoins(ctx.author.id, amount*-1)
-        addcoins(user.id, amount)
-    else:
-      embed.add_field(name="Donate", value=f'Not enough ChillCoins, need {amount} have {coins}', inline=False)
-  except:
-    embed.add_field(name="Donate", value='Something went wrong', inline=False)
+  amount = int(amount)
+  if coins >= int(amount):
+      embed.add_field(name="Donate", value=f'Donated {amount} ChillCoins to <@{user.id}>', inline=False)
+      addcoins(ctx.author.id, amount*-1)
+      addcoins(user.id, amount)
+  else:
+    embed.add_field(name="Donate", value=f'Not enough ChillCoins, need {amount} have {coins}', inline=False)
   await ctx.send(embed=embed)
 
 @bot.command()
 async def duel(ctx, user: discord.User, amount):
   embed=discord.Embed(color=embed_color)
   balance = db.find_one({'id': ctx.author.id})
-  try:
-    if balance['coins'] >= amount:
-      choice = random.choice(coinflip)
-      if choice == 'heads':
-        addcoins(ctx.author.id, amount)
-        addcoins(user.id, amount*-1)
-        embed.add_field(name="Duel", value=f'<@{ctx.author.id} stole {amount} from <@{user.id}>', inline=False)
-      elif choice == 'tails':
-        addcoins(ctx.author.id, amount*-1)
-        addcoins(user.id, amount*1)
-        embed.add_field(name="Duel", value=f'<@{user.id} stole {amount} from <@{ctx.author.id}>', inline=False)
-    else:
-      embed.add_field(name="Duel", value=f'Not enough ChillCoins, have {balance["coins"]} need {amount}', inline=False)
-  except:
-    embed.add_field(name="Donate", value="Something went wrong", inline=False)
+  amount = int(amount)
+  if balance['coins'] >= amount:
+    choice = random.choice(coinflip)
+    if choice == 'heads':
+      addcoins(ctx.author.id, amount)
+      addcoins(user.id, amount*-1)
+      embed.add_field(name="Duel", value=f'<@{ctx.author.id}> stole {amount} from <@{user.id}>', inline=False)
+    elif choice == 'tails':
+      addcoins(ctx.author.id, amount*-1)
+      addcoins(user.id, amount*1)
+      embed.add_field(name="Duel", value=f'<@{user.id} stole {amount} from <@{ctx.author.id}>', inline=False)
+  else:
+    embed.add_field(name="Duel", value=f'Not enough ChillCoins, have {balance["coins"]} need {amount}', inline=False)
   await ctx.send(embed=embed)
 
 @bot.command()
@@ -238,8 +233,8 @@ async def status(ctx):
   pid = os.getpid()
   py = psutil.Process(pid)
   embed = discord.Embed(color=embed_color, title="Resource Usage")
-  embed.add_field(name="RAM", value=py.memory_info()[0]/2.**30)
-  embed.add_field(name="CPU", value=psutil.cpu_percent())
+  embed.add_field(name="RAM", value=str(round(py.memory_info()[0]/1000000, 1))+'MB')
+  embed.add_field(name="CPU", value=str(psutil.cpu_percent())+'%')
   await ctx.send(embed=embed)
 
 # Help Commands
